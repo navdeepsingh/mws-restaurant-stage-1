@@ -54,6 +54,8 @@ nav {
   height: 80px;
   background-color: #252831;
   text-align:center;
+	display: flex;
+	align-items: center;
 }
 nav h1 {
   margin: auto;
@@ -108,7 +110,9 @@ nav h1 a {
   width: 100%;
   height: 50px;
   background-color: #3397DB;
+	display: flex;
   align-items: center;
+	justify-content: center;
 }
 .filter-options h2 {
   color: white;
@@ -128,6 +132,10 @@ nav h1 a {
   padding: 0 10px;
   width: 200px;
 }
+.filter-options select:focus{
+	outline: none !important;  
+  box-shadow: 0 0 10px 3px orange;
+}
 
 /* ====================== Restaurant Listing ====================== */
 #restaurants-list {
@@ -136,14 +144,16 @@ nav h1 a {
   margin: 0;
   padding: 30px 15px 60px;
   text-align: center;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
 }
 #restaurants-list li {
   background-color: #fff;
-  border: 2px solid #ccc;
+  border: 1px solid #ccc;
   font-family: Arial,sans-serif;
   margin: 15px;
   min-height: 380px;
-  padding: 0 30px 25px;
   text-align: left;
   width: 270px;
 }
@@ -171,7 +181,7 @@ nav h1 a {
 }
 #restaurants-list li a {
   background-color: orange;
-  border-bottom: 3px solid #eee;
+	transition: box-shadow 0.5s;
   color: #fff;
   display: inline-block;
   font-size: 10pt;
@@ -180,6 +190,13 @@ nav h1 a {
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
+}
+#restaurants-list li a:hover, #restaurants-list li a:focus{
+	box-shadow: 0 0 12px 0px rgba(0,0,0, 0.5);
+	outline: 0;
+}
+#restaurants-list .list-info {
+	padding: 0 1.2em 1em 1.2em;
 }
 
 /* ====================== Restaurant Details ====================== */
@@ -258,7 +275,7 @@ nav h1 a {
 }
 #reviews-list li {
   background-color: #fff;
-    border: 2px solid #f3f3f3;
+  border: 2px solid #f3f3f3;
   display: block;
   list-style-type: none;
   margin: 0 0 30px;
@@ -272,4 +289,21 @@ nav h1 a {
 }
 #restaurant-hours td {
   color: #666;
+}
+
+@media screen and (max-width: 550px) {
+	#restaurants-list li {
+		width: 100%;
+		margin: 0;
+		margin-bottom: 15px;
+	}
+	.filter-options {
+		flex-direction: column;
+		height: auto;
+		padding: 10px 0 20px 0;
+	}
+	.filter-options h2{
+		line-height: normal;
+		margin: 10px;
+	}
 }
