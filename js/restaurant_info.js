@@ -106,8 +106,8 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     return;
   }
   const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
+  reviews.forEach((review, i) => {
+    ul.appendChild(createReviewHTML(review, i));
   });
   container.appendChild(ul);
 }
@@ -115,8 +115,9 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
 /**
  * Create review HTML and add it to the webpage.
  */
-createReviewHTML = (review) => {
+createReviewHTML = (review, index) => {
   const li = document.createElement('li');
+  li.setAttribute('tabIndex', 0);
   const name = document.createElement('p');
   name.innerHTML = review.name;
   li.appendChild(name);
