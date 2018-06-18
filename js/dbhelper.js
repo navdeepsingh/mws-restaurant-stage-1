@@ -22,9 +22,6 @@ class DBHelper {
             })
             .then(responseJson => {
               return responseJson;
-            })
-            .catch(error => {
-              console.log('Request failed.');
             });
   }
 

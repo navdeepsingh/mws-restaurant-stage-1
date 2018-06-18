@@ -1,6 +1,7 @@
 let restaurants,
   neighborhoods,
-  cuisines
+  cuisines,
+  db
 var map
 var markers = []
 
@@ -8,9 +9,69 @@ var markers = []
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {
+  fetchRestaurants();
   fetchNeighborhoods();
   fetchCuisines();
+  handleIndexedDBAPI();
 });
+
+handleIndexedDBAPI = () => {
+  let idbSupported = false;
+
+  if ('indexedDB' in window) {
+    idbSupported = true;
+  }
+
+  if (idbSupported) {
+    let openRequest = indexedDB.open('mws-restaurant-db', 1);
+
+    openRequest.onupgradeneeded = function(e) {
+      console.log('UpgradeNeeded Running..');
+      db = e.target.result;
+      if (!db.objectStoreNames.contains('restaurants')) {
+        let objectStore = db.createObjectStore('restaurants');
+      }      
+    }
+
+    openRequest.onsuccess = function(e) {
+      console.log('Success');      
+      db = e.target.result;
+
+      // Add to DB
+      let transaction = db.transaction(['restaurants'], "readwrite");
+      let store = transaction.objectStore("restaurants");      
+
+      let request = store.add(self.restaurants, 1);
+      request.onerror = function (e) {
+        console.log("Error", e.target.error.name);
+      }
+
+      request.onsuccess = function (e) {
+        console.log('Added Successfully');
+      }
+
+      // Get from DB
+      let transactionGet = db.transaction(['restaurants'], "readonly");
+      let storeGet = transactionGet.objectStore("restaurants");
+      let requestGet = storeGet.get(1);
+      requestGet.onsuccess = function (e) {
+        let result = e.target.result;
+        console.log(result);
+      }
+    }
+  }
+}
+
+fetchRestaurants = () => {
+ DBHelper.fetchRestaurants()
+  .then(restaurants => {
+    self.restaurants = restaurants;
+  })
+  .catch(error => {
+    //console.log(error, 'testtt');    
+    
+  })
+}
 
 /**
  * Fetch all neighborhoods and set their HTML.

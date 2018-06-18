@@ -6,7 +6,6 @@
     '/',
     '/restaurant.html?id=',
     '/img/',
-    '/data/',
     'css/styles.css',
     'js/dbhelper.js',
     'js/main.js',
