@@ -12,17 +12,75 @@ class DBHelper {
     return `http://localhost:${port}/restaurants`;
   }
 
+  static createDB(openRequest, restaurantsPromise){ 
+    restaurantsPromise
+    .then(restaurants => {
+      //Add to DB
+      let transaction = db.transaction(['restaurants'], "readwrite");
+      let store = transaction.objectStore("restaurants");
+      console.log(restaurants);
+      let request = store.add(restaurants, 1);
+      request.onerror = function (e) {
+        console.log("Error", e.target.error.name);
+      }
+      request.onsuccess = function (e) {
+        console.log('Added Successfully');
+      }
+    })      
+  }
+
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants() {
-    return fetch(DBHelper.DATABASE_URL)
-            .then(response => {
-              return response.json();      
-            })
-            .then(responseJson => {
-              return responseJson;
-            });
+
+    return new Promise(function(resolve, reject) {
+      let openRequest = indexedDB.open('mws-restaurant-db', 5);
+      openRequest.onupgradeneeded = function (e) {
+        console.log('UpgradeNeeded Running..');
+        db = e.target.result;
+        if (!db.objectStoreNames.contains('restaurants')) {
+          let objectStore = db.createObjectStore('restaurants');
+        }
+      }
+      openRequest.onsuccess = function (e) {
+        db = e.target.result;
+        // Get from DB
+        let transactionGet = db.transaction(['restaurants'], "readonly");
+        let storeGet = transactionGet.objectStore("restaurants");
+        let requestGet = storeGet.get(1);
+
+        requestGet.onsuccess = function (e) {
+          console.log('On Success');
+          let result = e.target.result;
+          
+          if (result !== undefined) {          
+            // If its in cache
+            resolve(result);
+          } else {
+            // else request from network
+            resolve(fetch(DBHelper.DATABASE_URL)
+              .then(response => {
+                return response;
+              })
+              .then(result => {
+                let resultJson = result.json();
+                console.log('Fetch request fired');
+                DBHelper.createDB(db, resultJson);
+                return resultJson;
+              })
+              .catch(error => {
+                console.log(`Error: ${error}`);
+              }));
+          }
+        }
+
+        requestGet.onerror = function(e) {
+          console.log('On Error');
+          // reject can be here
+        }
+      }   
+    });
   }
 
   /**
@@ -113,7 +171,6 @@ class DBHelper {
         const cuisines = restaurants.map((v, i) => restaurants[i].cuisine_type);
         // Remove duplicates from cuisines
         const uniqueCuisines = cuisines.filter((v, i) => cuisines.indexOf(v) == i);
-        console.log(uniqueCuisines);
         
         return uniqueCuisines;
     });
