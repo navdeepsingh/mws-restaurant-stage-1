@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <title>Restaurant Reviews</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3397DB" />
   <link rel="stylesheet" src="//normalize-css.googlecode.com/svn/trunk/normalize.css" />
   <link rel="stylesheet" href="css/styles.css" media="screen">
+  <link rel="manifest" href="/manifest.json">
 </head>
 
 <body>
@@ -22,10 +24,10 @@
     <section>
       <div class="filter-options">
         <h2>Filter Results</h2>
-        <select id="neighborhoods-select" name="neighborhoods" onchange="updateRestaurants()">
+        <select id="neighborhoods-select" name="neighborhoods" aria-label="neighborhoods-select" onchange="updateRestaurants()">
           <option value="all">All Neighborhoods</option>
         </select>
-        <select id="cuisines-select" name="cuisines" onchange="updateRestaurants()">
+        <select id="cuisines-select" name="cuisines" aria-label="cuisines-select" onchange="updateRestaurants()">
           <option value="all">All Cuisines</option>
         </select>
       </div>
@@ -43,9 +45,9 @@
   </footer>
 
   <script>
-    // if (navigator.serviceWorker) {
-    //   navigator.serviceWorker.register('service-worker.js');
-    // }
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
   </script>
 
 </body>

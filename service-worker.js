@@ -1,59 +1,16 @@
 (function() {
   'use strict';
 
-  const staticCacheName = 'cacheFile-mws-stage1-v1.2';
+  const staticCacheName = 'cacheFile-mws-stage1-v1.6';
+  const imageCacheName = 'images';
   const cacheFiles = [
     '/',
     '/restaurant.html?id=',
-    '/img/',
     'css/styles.css',
     'js/dbhelper.js',
     'js/main.js',
-    'js/restaurant_info.js',
+    'js/restaurant_info.js'
   ]
-
-  function createDB() {
-    //console.log(self.restaurants);
-    
-    // let openRequest = indexedDB.open('mws-restaurant-db', 1);
-
-    // openRequest.onupgradeneeded = function (e) {
-    //   console.log('UpgradeNeeded Running..');
-    //   db = e.target.result;
-    //   if (!db.objectStoreNames.contains('restaurants')) {
-    //     let objectStore = db.createObjectStore('restaurants');
-    //   }
-    // }
-
-    // openRequest.onsuccess = function (e) {
-    //   console.log('Success');
-    //   db = e.target.result;
-
-    //   // Add to DB
-    //   let transaction = db.transaction(['restaurants'], "readwrite");
-    //   let store = transaction.objectStore("restaurants");
-
-    //   if (self.restaurants !== undefined) {
-    //     let request = store.add(self.restaurants, 1);
-    //     request.onerror = function (e) {
-    //       console.log("Error", e.target.error.name);
-    //     }
-
-    //     request.onsuccess = function (e) {
-    //       console.log('Added Successfully');
-    //     }
-    //   }
-
-    //   // Get from DB
-    //   let transactionGet = db.transaction(['restaurants'], "readonly");
-    //   let storeGet = transactionGet.objectStore("restaurants");
-    //   let requestGet = storeGet.get(1);
-    //   requestGet.onsuccess = function (e) {
-    //     let result = e.target.result;
-    //     console.log(result);
-    //   }      
-    // }
-  }
 
   self.addEventListener('install', installEvent => {
     console.log('Service Worker Installing');
@@ -80,7 +37,6 @@
             })
           )
         }),
-      //createDB()
     );
   });
 
@@ -88,15 +44,31 @@
     console.log('Service Worker is Listening');
     const request = fetchEvent.request;
 
-    fetchEvent.respondWith(
-      caches.match(request)
+      fetchEvent.respondWith(        
+        caches.match(request)
         .then( responseFromCache => {
           if (responseFromCache) {
             return responseFromCache;
           }
-          return fetch(request);
+
+          // Otherwise fetch from network         
+          return fetch(request)
+          .then(responseFromFetch => {
+            // Special cache for images
+            if (request.headers.get('Accept').includes('image')) {
+              const copy = responseFromFetch.clone();
+              fetchEvent.waitUntil(
+                caches.open(imageCacheName)
+                .then(imageCache => {
+                  return imageCache.put(request, copy);
+                })
+              );
+            }
+            return responseFromFetch;            
+
+          });
         })
-    );
+      ); // end respondWith
   });
 
   

@@ -30,6 +30,13 @@ a:hover, a:focus {
 a img{
 	border: none 0px #fff;
 }
+img {
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+img[data-src] {
+  opacity: 0;
+}
 h1, h2, h3, h4, h5, h6 {
   font-family: Arial, Helvetica, sans-serif;
   margin: 0 0 20px;
@@ -169,7 +176,7 @@ nav h1 a {
   min-width: 100%;
 }
 #restaurants-list li h1 {
-  color: #f18200;
+  color: #cb7108;
   font-family: Arial,sans-serif;
   font-size: 14pt;
   font-weight: 200;

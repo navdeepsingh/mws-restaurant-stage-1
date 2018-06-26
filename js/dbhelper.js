@@ -12,30 +12,14 @@ class DBHelper {
     return `http://localhost:${port}/restaurants`;
   }
 
-  static createDB(openRequest, restaurantsPromise){ 
-    restaurantsPromise
-    .then(restaurants => {
-      //Add to DB
-      let transaction = db.transaction(['restaurants'], "readwrite");
-      let store = transaction.objectStore("restaurants");
-      console.log(restaurants);
-      let request = store.add(restaurants, 1);
-      request.onerror = function (e) {
-        console.log("Error", e.target.error.name);
-      }
-      request.onsuccess = function (e) {
-        console.log('Added Successfully');
-      }
-    })      
-  }
-
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants() {
 
     return new Promise(function(resolve, reject) {
-      let openRequest = indexedDB.open('mws-restaurant-db', 5);
+      let db;
+      let openRequest = indexedDB.open('mws-restaurant-db', 6);
       openRequest.onupgradeneeded = function (e) {
         console.log('UpgradeNeeded Running..');
         db = e.target.result;
@@ -51,11 +35,10 @@ class DBHelper {
         let requestGet = storeGet.get(1);
 
         requestGet.onsuccess = function (e) {
-          console.log('On Success');
-          let result = e.target.result;
-          
+          let result = e.target.result;          
           if (result !== undefined) {          
             // If its in cache
+            console.log('Getting JSON from: IndexedDB');            
             resolve(result);
           } else {
             // else request from network
@@ -65,8 +48,8 @@ class DBHelper {
               })
               .then(result => {
                 let resultJson = result.json();
-                console.log('Fetch request fired');
                 DBHelper.createDB(db, resultJson);
+                console.log('Getting JSON from: Network');
                 return resultJson;
               })
               .catch(error => {
@@ -81,6 +64,22 @@ class DBHelper {
         }
       }   
     });
+  }
+
+  static createDB(db, restaurantsPromise) {
+    restaurantsPromise
+      .then(restaurants => {
+        //Add to DB
+        let transaction = db.transaction(['restaurants'], "readwrite");
+        let store = transaction.objectStore("restaurants");
+        let request = store.add(restaurants, 1);
+        request.onerror = function (e) {
+          console.log("Error", e.target.error.name);
+        }
+        request.onsuccess = function (e) {
+          console.log('Added Successfully');
+        }
+      })
   }
 
   /**
