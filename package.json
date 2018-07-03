@@ -17,7 +17,10 @@
   },
   "homepage": "https://github.com/navdeepsingh/mws-restaurant-stage-1#readme",
   "devDependencies": {
-    "gulp": "^3.9.1"
+    "gulp": "^3.9.1",
+    "gulp-csso": "^3.0.1",
+    "gulp-uglify": "^3.0.0",
+    "gulp-uglify-es": "^1.0.4"
   },
   "dependencies": {
     "gulp-util": "^3.0.8"

@@ -1,15 +1,15 @@
 (function() {
   'use strict';
 
-  const staticCacheName = 'cacheFile-mws-stage1-v1.6';
+  const staticCacheName = 'cacheFile-mws-stage1-v1.7';
   const imageCacheName = 'images';
   const cacheFiles = [
     '/',
     '/restaurant.html?id=',
-    'css/styles.css',
-    'js/dbhelper.js',
-    'js/main.js',
-    'js/restaurant_info.js'
+    'public/css/styles.css',
+    'public/js/dbhelper.js',
+    'public/js/main.js',
+    'public/js/restaurant_info.js'
   ]
 
   self.addEventListener('install', installEvent => {
