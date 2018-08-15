@@ -9,7 +9,12 @@ class DBHelper {
    */
   static get DATABASE_URL() {
     const port = 1337 // Change this to your server port
-    return `http://localhost:${port}/restaurants`;
+    return `http://localhost:${port}/restaurants/`;
+  }
+
+  static get REVIEWS_URL() {
+    const port = 1337 // Change this to your server port
+    return `http://localhost:${port}/reviews/`;
   }
 
   /**
@@ -41,7 +46,7 @@ class DBHelper {
             console.log('Getting JSON from: IndexedDB');            
             resolve(result);
           } else {
-            // else request from network
+            //else request from network
             resolve(fetch(DBHelper.DATABASE_URL)
               .then(response => {
                 return response;
@@ -91,7 +96,18 @@ class DBHelper {
       .then(restaurants => {
         const restaurant = restaurants.find(r => r.id == id);
         if (restaurant) { // Got the restaurant
-          return restaurant;
+          // Get and merge reviews too
+          return fetch(DBHelper.REVIEWS_URL +`?restaurant_id=${restaurant.id}`)
+          .then(results => {
+            return results.json();         
+          })
+          .then(reviews => {
+            restaurant['reviews'] = reviews;              
+            return restaurant;   
+          });       
+          //console.log(restaurant);                  
+          
+          
         } else { // Restaurant does not exist inthe database
          console.log('Restaurant does not exist');
         }
@@ -201,6 +217,49 @@ class DBHelper {
       animation: google.maps.Animation.DROP}
     );
     return marker;
+  }
+
+  /**
+   * Toggle Favorite for a restaurant.
+   */
+  static toggleFavoriteRestaurant(restaurant, isFav, favToggleElem) {
+    return new Promise(function (resolve, reject) {
+      fetch(DBHelper.DATABASE_URL + `${restaurant.id}/?is_favorite=${isFav}`, {
+        method: 'put'
+      })
+      .then(response => {
+        if (!response.ok) {
+          console.log('Something goes wrong..');
+        }
+        isFav = !isFav;
+        favToggleElem.classList.toggle('fav');
+        resolve(isFav);
+      });
+    });
+  }
+
+
+  static postRestaurantReview(restaurant, data) {
+    let newData = {};
+    for (var entry of data.entries()) {
+      newData[entry[0]] = entry[1];
+    }
+    newData['restaurant_id'] = restaurant.id;
+    return new Promise(function (resolve, reject) {
+      fetch(DBHelper.REVIEWS_URL, {
+        method: 'POST',
+        body: JSON.stringify(newData),
+        headers: {
+          "Accept": "application/json"
+        }
+      })
+      .then(response => {
+        resolve(response.ok);
+      })
+      .catch(err => {
+        throw err;
+      }); 
+    });
   }
 
 }

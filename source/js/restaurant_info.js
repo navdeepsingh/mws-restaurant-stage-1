@@ -13,6 +13,7 @@ window.initMap = () => {
  */
 fetchRestaurantFromURL = () => {
   if (self.restaurant) { // restaurant already fetched!
+    console.log('Already Fetched');    
     return;
   }
   const id = getParameterByName('id');
@@ -22,6 +23,7 @@ fetchRestaurantFromURL = () => {
   } else {
     DBHelper.fetchRestaurantById(id)
       .then(restaurant => {
+        
         self.restaurant = restaurant;
         
         // Init Map
@@ -38,6 +40,8 @@ fetchRestaurantFromURL = () => {
           return;
         }
         fillRestaurantHTML();
+        bindFavoriteRestaurant();
+        bindReviewForm();
     });
   }
 }
@@ -95,6 +99,7 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
  * Create all reviews HTML and add them to the webpage.
  */
 fillReviewsHTML = (reviews = self.restaurant.reviews) => {
+  
   const container = document.getElementById('reviews-container');
   const title = document.createElement('h2');
   title.innerHTML = 'Reviews';
@@ -124,7 +129,12 @@ createReviewHTML = (review, index) => {
   li.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+  const timestamp = new Date(review.createdAt);
+  const todate = new Date(timestamp).getDate();
+  const tomonth = new Date(timestamp).getMonth() + 1;
+  const toyear = new Date(timestamp).getFullYear();
+  const original_date = tomonth + '/' + todate + '/' + toyear;
+  date.innerHTML = original_date;
   li.appendChild(date);
 
   const rating = document.createElement('p');
@@ -162,4 +172,54 @@ getParameterByName = (name, url) => {
   if (!results[2])
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+
+/**
+ * Bind favorite toggle feature here.
+ */
+bindFavoriteRestaurant = (restaurant = self.restaurant) => {
+  const favToggleElem = document.querySelector('.restaurant-fav-toggle');
+  let isFav;
+  
+  if (restaurant.is_favorite == 'true') {
+    favToggleElem.classList.add('fav');
+    isFav = false;
+  } else {
+    favToggleElem.classList.remove('fav');
+    isFav = true;
+  }
+  
+  favToggleElem.addEventListener('click', function(e) {
+    e.preventDefault();  
+    DBHelper.toggleFavoriteRestaurant(restaurant, isFav, favToggleElem)
+    .then(response => {
+      isFav = response;      
+    });
+  });
+}
+
+/**
+ * Bind review form
+ */
+bindReviewForm = (restaurant = self.restaurant) => {
+  const formElement = document.querySelector('form#reviewForm');
+  const buttonElement = formElement.querySelector('button');
+  const successMsg = formElement.querySelector('.success');
+  formElement.addEventListener('submit', function (e) {
+    e.preventDefault();
+    successMsg.style.visibility = 'hidden';
+    buttonElement.innerHTML = 'SUBMITTING...'
+    buttonElement.setAttribute('disabled', true);
+    
+    const formData = new FormData(formElement);
+    
+    const result = DBHelper.postRestaurantReview(restaurant, formData);   
+    if (result) {
+      formElement.reset();
+      buttonElement.innerHTML = 'SUBMIT';
+      buttonElement.removeAttribute('disabled');
+      successMsg.style.visibility = 'visible';
+    }
+  });
 }
