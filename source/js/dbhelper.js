@@ -20,11 +20,12 @@ class DBHelper {
   /**
    * Fetch all restaurants.
    */
-  static fetchRestaurants() {
+  static fetchRestaurants(from = 'indexeddb', action = 'create') {
+    let db;
+    let openRequest = indexedDB.open('mws-restaurant-db', 6);
 
     return new Promise(function(resolve, reject) {
-      let db;
-      let openRequest = indexedDB.open('mws-restaurant-db', 6);
+
       openRequest.onupgradeneeded = function (e) {
         console.log('UpgradeNeeded Running..');
         db = e.target.result;
@@ -41,7 +42,7 @@ class DBHelper {
 
         requestGet.onsuccess = function (e) {
           let result = e.target.result;          
-          if (result !== undefined) {          
+          if (result !== undefined && from == 'indexeddb') {          
             // If its in cache
             console.log('Getting JSON from: IndexedDB');            
             resolve(result);
@@ -53,7 +54,12 @@ class DBHelper {
               })
               .then(result => {
                 let resultJson = result.json();
-                DBHelper.createDB(db, resultJson);
+                // Create DB
+                if (action == 'create') {
+                  DBHelper.createDB(db, resultJson);
+                } else {
+                  DBHelper.updateDB(db, resultJson);
+                }
                 console.log('Getting JSON from: Network');
                 return resultJson;
               })
@@ -83,6 +89,22 @@ class DBHelper {
         }
         request.onsuccess = function (e) {
           console.log('Added Successfully');
+        }
+      })
+  }
+
+  static updateDB(db, restaurantsPromise) {
+    restaurantsPromise
+      .then(restaurants => {
+        //Add to DB
+        let transaction = db.transaction(['restaurants'], "readwrite");
+        let store = transaction.objectStore("restaurants");
+        let request = store.put(restaurants, 1);
+        request.onerror = function (e) {
+          console.log("Error", e.target.error.name);
+        }
+        request.onsuccess = function (e) {
+          console.log('Updated Successfully');
         }
       })
   }
@@ -224,21 +246,29 @@ class DBHelper {
    */
   static toggleFavoriteRestaurant(restaurant, isFav, favToggleElem) {
     return new Promise(function (resolve, reject) {
+      // Saving on server
       fetch(DBHelper.DATABASE_URL + `${restaurant.id}/?is_favorite=${isFav}`, {
         method: 'put'
       })
       .then(response => {
         if (!response.ok) {
           console.log('Something goes wrong..');
+          reject('Failed');
         }
         isFav = !isFav;
         favToggleElem.classList.toggle('fav');
-        resolve(isFav);
+
+        return DBHelper.fetchRestaurants('network', 'upadate')
+          .then(restaurants => {            
+              resolve(isFav);            
+          });    
       });
     });
   }
 
-
+  /**
+  * Save retaurant review
+  */
   static postRestaurantReview(restaurant, data) {
     let newData = {};
     for (var entry of data.entries()) {
@@ -246,6 +276,7 @@ class DBHelper {
     }
     newData['restaurant_id'] = restaurant.id;
     return new Promise(function (resolve, reject) {
+      // Saving on server
       fetch(DBHelper.REVIEWS_URL, {
         method: 'POST',
         body: JSON.stringify(newData),

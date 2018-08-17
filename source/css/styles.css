@@ -257,7 +257,9 @@ nav h1 a {
   background: url('../images/unfavorite-24px.svg') no-repeat;
 }
 .restaurant-fav-toggle.fav {
-  background-image: url('../images/favorite-24px.svg')
+  background-image: url('../images/favorite-24px.svg');
+  -webkit-filter: opacity(.5) drop-shadow(0 0 0 red);
+  filter: opacity(.5) drop-shadow(0 0 0 red);
 }
 #restaurant-img {
 	width: 100%;

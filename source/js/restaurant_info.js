@@ -184,9 +184,11 @@ bindFavoriteRestaurant = (restaurant = self.restaurant) => {
   
   if (restaurant.is_favorite == 'true') {
     favToggleElem.classList.add('fav');
+    favToggleElem.setAttribute('title', 'Mark this Unfavorite.');
     isFav = false;
   } else {
     favToggleElem.classList.remove('fav');
+    favToggleElem.setAttribute('title', 'Mark this Favorite.');
     isFav = true;
   }
   
@@ -195,6 +197,11 @@ bindFavoriteRestaurant = (restaurant = self.restaurant) => {
     DBHelper.toggleFavoriteRestaurant(restaurant, isFav, favToggleElem)
     .then(response => {
       isFav = response;      
+      if (!isFav) {
+        favToggleElem.setAttribute('title', 'Mark this Unfavorite.');
+      } else {
+        favToggleElem.setAttribute('title', 'Mark this Favorite.');
+      }
     });
   });
 }
