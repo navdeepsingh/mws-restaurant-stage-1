@@ -17,12 +17,17 @@ class DBHelper {
     return `http://localhost:${port}/reviews/`;
   }
 
+  static get DB_VERSION() {
+    const version = 6;
+    return version;
+  }
+
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(from = 'indexeddb', action = 'create') {
     let db;
-    let openRequest = indexedDB.open('mws-restaurant-db', 6);
+    let openRequest = indexedDB.open('mws-restaurant-db', this.DB_VERSION);
 
     return new Promise(function(resolve, reject) {
 
@@ -30,7 +35,11 @@ class DBHelper {
         console.log('UpgradeNeeded Running..');
         db = e.target.result;
         if (!db.objectStoreNames.contains('restaurants')) {
-          let objectStore = db.createObjectStore('restaurants');
+          db.createObjectStore('restaurants');
+        }
+        if (!db.objectStoreNames.contains('reviews')) {
+          var objectStore = db.createObjectStore("reviews", { keyPath: "Key", autoIncrement: true });
+          objectStore.createIndex("Key", "Key", { unique: false })
         }
       }
       openRequest.onsuccess = function (e) {
@@ -56,9 +65,9 @@ class DBHelper {
                 let resultJson = result.json();
                 // Create DB
                 if (action == 'create') {
-                  DBHelper.createDB(db, resultJson);
+                  DBHelper.createRestaurantsDB(db, resultJson);
                 } else {
-                  DBHelper.updateDB(db, resultJson);
+                  DBHelper.updateRestaurantsDB(db, resultJson);
                 }
                 console.log('Getting JSON from: Network');
                 return resultJson;
@@ -77,7 +86,7 @@ class DBHelper {
     });
   }
 
-  static createDB(db, restaurantsPromise) {
+  static createRestaurantsDB(db, restaurantsPromise) {
     restaurantsPromise
       .then(restaurants => {
         //Add to DB
@@ -93,7 +102,7 @@ class DBHelper {
       })
   }
 
-  static updateDB(db, restaurantsPromise) {
+  static updateRestaurantsDB(db, restaurantsPromise) {
     restaurantsPromise
       .then(restaurants => {
         //Add to DB
@@ -107,6 +116,24 @@ class DBHelper {
           console.log('Updated Successfully');
         }
       })
+  }
+
+  static createReviewsDB(data) {
+    let db;
+    let openRequest = indexedDB.open('mws-restaurant-db', this.DB_VERSION);
+    openRequest.onsuccess = function (e) {
+      db = e.target.result;
+      // Get from DB
+      let transaction = db.transaction(['reviews'], "readwrite");
+      let store = transaction.objectStore("reviews");
+      let request = store.add(data);
+      request.onerror = function (e) {
+        console.log("Error", e.target.error.name);
+      }
+      request.onsuccess = function (e) {
+        console.log('Reviews Added Successfully');
+      }
+    }
   }
 
   /**
@@ -277,18 +304,23 @@ class DBHelper {
     newData['restaurant_id'] = restaurant.id;
     return new Promise(function (resolve, reject) {
       // Saving on server
-      fetch(DBHelper.REVIEWS_URL, {
+      const newDataJson = JSON.stringify(newData);
+      return fetch(DBHelper.REVIEWS_URL, {
         method: 'POST',
-        body: JSON.stringify(newData),
+        body: newDataJson,
         headers: {
           "Accept": "application/json"
         }
       })
       .then(response => {
+        // Save on IndexedDB Also
+        console.log(response.ok);               
         resolve(response.ok);
+        return;
       })
-      .catch(err => {
-        throw err;
+      .catch(err => {        
+        console.log('Network Error');                
+        reject(DBHelper.createReviewsDB(newData));
       }); 
     });
   }

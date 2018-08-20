@@ -221,12 +221,14 @@ bindReviewForm = (restaurant = self.restaurant) => {
     
     const formData = new FormData(formElement);
     
-    const result = DBHelper.postRestaurantReview(restaurant, formData);   
-    if (result) {
-      formElement.reset();
-      buttonElement.innerHTML = 'SUBMIT';
-      buttonElement.removeAttribute('disabled');
-      successMsg.style.visibility = 'visible';
-    }
+    DBHelper.postRestaurantReview(restaurant, formData)
+    .then(result => {
+      if (result) {
+        formElement.reset();
+        buttonElement.innerHTML = 'SUBMIT';
+        buttonElement.removeAttribute('disabled');
+        successMsg.style.visibility = 'visible';
+      }
+    });
   });
 }
