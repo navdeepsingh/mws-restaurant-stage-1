@@ -224,11 +224,20 @@ bindReviewForm = (restaurant = self.restaurant) => {
     DBHelper.postRestaurantReview(restaurant, formData)
     .then(result => {
       if (result) {
-        formElement.reset();
-        buttonElement.innerHTML = 'SUBMIT';
-        buttonElement.removeAttribute('disabled');
-        successMsg.style.visibility = 'visible';
-      }
+        successMsg.innerHTML = '🕺 Form is submitted successfully.';
+        resetForm(formElement, buttonElement, successMsg);
+      } 
+    })
+    .catch(err => {
+      successMsg.innerHTML = 'Form Saved Offline.';
+      resetForm(formElement, buttonElement, successMsg);
     });
   });
+}
+
+resetForm = (formElement, buttonElement, successMsg) => {
+  formElement.reset();
+  buttonElement.innerHTML = 'SUBMIT';
+  buttonElement.removeAttribute('disabled');
+  successMsg.style.visibility = 'visible';
 }

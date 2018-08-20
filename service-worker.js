@@ -1,7 +1,9 @@
 (function() {
   'use strict';
 
-  const staticCacheName = 'cacheFile-mws-stage1-v2.0';
+  self.importScripts('public/js/dbhelper.js');
+
+  const staticCacheName = 'cacheFile-mws-stage1-v2.1';
   const imageCacheName = 'images';
   const pagesCacheName = 'pages';
 
@@ -99,10 +101,44 @@
           if (responseFromCache) {
             return responseFromCache;
           } // end if
-          
+
           return fetch(request);      
         })        
     ); // end respondWith
+  });
+
+  self.addEventListener('sync', syncEvent => {
+    let db;
+    let openRequest = indexedDB.open('mws-restaurant-db', DBHelper.DB_VERSION);
+    syncEvent.waitUntil(
+      openRequest.onsuccess = function (e) {
+        db = e.target.result;
+        // Get from DB
+        let transactionGet = db.transaction(['reviews'], "readonly");
+        let storeGet = transactionGet.objectStore("reviews");
+        let requestGet = storeGet.getAll();
+        requestGet.onsuccess = function (e) {
+          let result = e.target.result;   
+
+          result.map(review => {            
+            delete review.Key;
+            console.log(review);
+            fetch(DBHelper.REVIEWS_URL, {
+              method: 'POST',
+              body: review,
+              headers: {
+                "Accept": "application/json"
+              }
+            })
+            .then(response => {
+              console.log(response.ok);
+              return;
+            });
+          })            
+        }
+      }      
+    );
+
   });
 
   

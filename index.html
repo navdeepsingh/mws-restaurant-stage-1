@@ -46,7 +46,13 @@
 
   <script>
     if (navigator.serviceWorker) {
-      navigator.serviceWorker.register('service-worker.js');
+      navigator.serviceWorker.register('service-worker.js')
+      .then(reg => {
+        if ('sync' in reg) {
+          console.log(reg);   
+          return reg.sync.register('reviews');       
+        }
+      })
     }
   </script>
 
