@@ -314,7 +314,7 @@ class DBHelper {
       })
       .then(response => {
         // Save on IndexedDB Also
-        console.log(response.ok);               
+        console.log(response);               
         resolve(response.ok);
         return;
       })
@@ -322,6 +322,28 @@ class DBHelper {
         console.log('Network Error');                
         reject(DBHelper.createReviewsDB(newData));
       }); 
+    });
+  }
+
+  /**
+  * Save retaurant review from IndexedDB
+  */
+  static saveRestaurantReview(data) {
+    return new Promise(function(resolve, reject) {
+      return fetch(DBHelper.REVIEWS_URL, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          "Accept": "application/json"
+        }
+      })
+      .then(response => {
+        resolve(response.ok);
+        return;
+      })
+      .catch(err => {
+        reject(false);
+      });
     });
   }
 

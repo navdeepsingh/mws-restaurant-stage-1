@@ -48,10 +48,16 @@
     if (navigator.serviceWorker) {
       navigator.serviceWorker.register('service-worker.js')
       .then(reg => {
-        if ('sync' in reg) {
-          console.log(reg);   
-          return reg.sync.register('reviews');       
+        if ('sync' in reg) {          
+          console.log(reg.sync);          
+          reg.sync.register('reviews')
+          .then(() => {
+            console.log('Sync registered');
+          })       
         }
+      })
+      .catch(error => {
+        console.log('System was unable to register for a sync, this could be an OS-level restriction');        
       })
     }
   </script>
