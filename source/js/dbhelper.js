@@ -325,26 +325,60 @@ class DBHelper {
     });
   }
 
+  static dummyPromise() {
+    return new Promise(function(resolve, reject) {
+      resolve('Test');
+    });
+  }
+
   /**
   * Save retaurant review from IndexedDB
   */
   static saveRestaurantReview(data) {
-    return new Promise(function(resolve, reject) {
-      return fetch(DBHelper.REVIEWS_URL, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          "Accept": "application/json"
+    let db;
+    let openRequest = indexedDB.open('mws-restaurant-db', DBHelper.DB_VERSION);
+    return new Promise(function(resolve, reject){
+
+      openRequest.onsuccess = function (e) {
+        db = e.target.result;
+        // Get from DB
+        let transactionGet = db.transaction(['reviews'], "readwrite");
+        let storeGet = transactionGet.objectStore("reviews");
+        let requestGet = storeGet.getAll();
+        requestGet.onsuccess = function (e) {
+          let result = e.target.result;
+
+          result.map((review, i) => {
+
+            return fetch(DBHelper.REVIEWS_URL, {
+              method: 'POST',
+              body: JSON.stringify(review),
+              headers: {
+                "Accept": "application/json"
+              }
+            })
+            .then(response => {              
+              return response;
+            })
+            .catch(err => {
+              console.log(err);                
+            });
+
+          });
+          let clearRequest = storeGet.clear();
+          clearRequest.onsuccess = function (event) {
+            console.log(`#${storeGet} is Cleared`);
+            resolve(true);
+          }
+          clearRequest.onerror = function (event) {            
+            reject(false);
+          }          
         }
-      })
-      .then(response => {
-        resolve(response.ok);
-        return;
-      })
-      .catch(err => {
-        reject(false);
-      });
+      }
+
     });
+    
+    
   }
 
 }
