@@ -9,16 +9,16 @@ class DBHelper {
    */
   static get DATABASE_URL() {
     const port = 1337 // Change this to your server port
-    return `http://localhost:${port}/restaurants/`;
+    return `https://mws-project-backend.herokuapp.com/restaurants/`;
   }
 
   static get REVIEWS_URL() {
     const port = 1337 // Change this to your server port
-    return `http://localhost:${port}/reviews/`;
+    return `https://mws-project-backend.herokuapp.com/reviews/`;
   }
 
   static get DB_VERSION() {
-    const version = 6;
+    const version = 1;
     return version;
   }
 
