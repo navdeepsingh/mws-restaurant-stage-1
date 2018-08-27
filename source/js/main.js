@@ -9,6 +9,8 @@ var markers = []
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {
+  console.log('M loaded');
+  
   //fetchRestaurants();
   fetchNeighborhoods();
   fetchCuisines();
@@ -20,6 +22,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 fetchNeighborhoods = () => {
   DBHelper.fetchNeighborhoods()
   .then(neighborhoods => {    
+    console.log(neighborhoods);
+    
       self.neighborhoods = neighborhoods;
       fillNeighborhoodsHTML();
   });

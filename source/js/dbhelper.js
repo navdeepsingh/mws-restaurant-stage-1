@@ -9,16 +9,16 @@ class DBHelper {
    */
   static get DATABASE_URL() {
     const port = 1337 // Change this to your server port
-    return `https://mws-project-backend.herokuapp.com/restaurants/`;
+    return `http://localhost:${port}/restaurants/`;
   }
 
   static get REVIEWS_URL() {
     const port = 1337 // Change this to your server port
-    return `https://mws-project-backend.herokuapp.com/reviews/`;
+    return `http://localhost:${port}/reviews/`;
   }
 
   static get DB_VERSION() {
-    const version = 1;
+    const version = 6;
     return version;
   }
 
@@ -28,20 +28,21 @@ class DBHelper {
   static fetchRestaurants(from = 'indexeddb', action = 'create') {
     let db;
     let openRequest = indexedDB.open('mws-restaurant-db', this.DB_VERSION);
+    openRequest.onupgradeneeded = function (e) {
+      console.log('UpgradeNeeded Running..');
+      db = e.target.result;
+      if (!db.objectStoreNames.contains('restaurants')) {
+        db.createObjectStore('restaurants');
+      }
+      if (!db.objectStoreNames.contains('reviews')) {
+        var objectStore = db.createObjectStore("reviews", { keyPath: "Key", autoIncrement: true });
+        objectStore.createIndex("Key", "Key", { unique: false })
+      }
+    }
 
     return new Promise(function(resolve, reject) {
 
-      openRequest.onupgradeneeded = function (e) {
-        console.log('UpgradeNeeded Running..');
-        db = e.target.result;
-        if (!db.objectStoreNames.contains('restaurants')) {
-          db.createObjectStore('restaurants');
-        }
-        if (!db.objectStoreNames.contains('reviews')) {
-          var objectStore = db.createObjectStore("reviews", { keyPath: "Key", autoIncrement: true });
-          objectStore.createIndex("Key", "Key", { unique: false })
-        }
-      }
+      
       openRequest.onsuccess = function (e) {
         db = e.target.result;
         // Get from DB
@@ -214,6 +215,8 @@ class DBHelper {
     // Fetch all restaurants
     return DBHelper.fetchRestaurants()
     .then(restaurants => {
+      console.log(restaurants);
+      
         // Get all neighborhoods from all restaurants
         const neighborhoods = restaurants.map((v, i) => restaurants[i].neighborhood)
         
@@ -338,13 +341,28 @@ class DBHelper {
     let db;
     let openRequest = indexedDB.open('mws-restaurant-db', DBHelper.DB_VERSION);
     return new Promise(function(resolve, reject){
-
+      openRequest.onupgradeneeded = function (e) {
+        console.log('UpgradeNeeded Running..');
+        db = e.target.result;
+        if (!db.objectStoreNames.contains('restaurants')) {
+          db.createObjectStore('restaurants');
+        }
+        if (!db.objectStoreNames.contains('reviews')) {
+          var objectStore = db.createObjectStore("reviews", { keyPath: "Key", autoIncrement: true });
+          objectStore.createIndex("Key", "Key", { unique: false })
+        }
+      }
       openRequest.onsuccess = function (e) {
         db = e.target.result;
         // Get from DB
+        if (!db.objectStoreNames.contains('restaurants') || !db.objectStoreNames.contains('reviews')) {
+          reject(false);
+          return;
+        }
         let transactionGet = db.transaction(['reviews'], "readwrite");
-        let storeGet = transactionGet.objectStore("reviews");
+        let storeGet = transactionGet.objectStore("reviews");        
         let requestGet = storeGet.getAll();
+        
         requestGet.onsuccess = function (e) {
           let result = e.target.result;
 

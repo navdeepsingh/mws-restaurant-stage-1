@@ -122,33 +122,7 @@
         })
         .catch(err => {
           console.log('Failed Promise in SW');          
-        })
-        // openRequest.onsuccess = function (e) {
-        //   db = e.target.result;
-        //   // Get from DB
-        //   let transactionGet = db.transaction(['reviews'], "readwrite");
-        //   let storeGet = transactionGet.objectStore("reviews");
-        //   let requestGet = storeGet.getAll();
-        //   requestGet.onsuccess = function (e) {
-        //     let result = e.target.result;
-
-        //     result.map((review, i) => {
-
-        //       DBHelper.saveRestaurantReview(review)
-        //         .then(result => {
-        //           if (result) {
-        //             let deleteRequest = storeGet.delete(review.Key);
-        //             deleteRequest.onsuccess = function (event) {
-        //               console.log(`#${review.Key} is Deleted`);
-        //             }
-        //           }
-        //           return;
-        //         });
-
-        //     });
-
-        //   }
-        // }
+        })        
       );
     }
      
